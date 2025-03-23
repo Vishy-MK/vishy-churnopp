@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChurnGuard - Predictive Churn Analytics</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3f37c9;
+            --success: #4cc9f0;
+            --danger: #f72585;
+            --warning: #f8961e;
+            --info: #4895ef;
+            --light: #f8f9fa;
+            --dark: #212529;
+        }
+        
+        body {
+            background-color: #f5f7fb;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        .sidebar {
+            background-color: var(--dark);
+            min-height: 100vh;
+            color: white;
+            padding-top: 20px;
+        }
+        
+        .sidebar .nav-link {
+            color: rgba(255, 255, 255, 0.75);
+            padding: 0.75rem 1.25rem;
+            font-size: 0.9rem;
+        }
+        
+        .sidebar .nav-link:hover {
+            color: rgba(255, 255, 255, 1);
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        
+        .sidebar .nav-link.active {
+            color: white;
+            background-color: var(--primary);
+        }
+        
+        .card {
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+            border: none;
+        }
+        
+        .card-header {
+            background-color: white;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            font-weight: 600;
+        }
+        
+        .stat-card {
+            text-align: center;
+            padding: 15px;
+        }
+        
+        .stat-card i {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .stat-card .stat-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        
+        .risk-high {
+            color: var(--danger);
+        }
+        
+        .risk-medium {
+            color: var(--warning);
+        }
+        
+        .risk-low {
+            color: var(--success);
+        }
+        
+        .chart-container {
+            height: 300px;
+            width: 100%;
+        }
+        
+        .customer-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--primary);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        .top-nav {
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-2 sidebar d-none d-md-block">
+                <div class="text-center mb-4">
+                    <h4>ChurnGuard</h4>
+                </div>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#">
+                            <i class="fas fa-tachometer-alt me-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-users me-2"></i> Customers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-chart-line me-2"></i> Predictions
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-bullhorn me-2"></i> Campaigns
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="fas fa-cog me-2"></i> Settings
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-md-10 ms-auto">
+                <div class="row top-nav py-3 align-items-center">
+                    <div class="col-md-6">
+                        <h4>Dashboard</h4>
+                    </div>
+                    <div class="col-md-6 text-end">
+                        <div class="dropdown">
+                            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="fas fa-user-circle me-1"></i> Admin User
+                            </button>
+                            <ul class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                                <li><a class="dropdown-item" href="#">Profile</a></li>
+                                <li><a class="dropdown-item" href="#">Settings</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#">Logout</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="container-fluid py-4">
+                    <!-- Stats Row -->
+                    <div class="row">
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-users text-primary"></i>
+                                <div class="stat-value">4,827</div>
+                                <div class="stat-label">Total Customers</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-user-minus risk-high"></i>
+                                <div class="stat-value">187</div>
+                                <div class="stat-label">High Churn Risk</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-chart-line text-success"></i>
+                                <div class="stat-value">87%</div>
+                                <div class="stat-label">Retention Rate</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card stat-card">
+                                <i class="fas fa-trophy text-warning"></i>
+                                <div class="stat-value">$142.8K</div>
+                                <div class="stat-label">Saved Revenue</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Charts Row -->
+                    <div class="row mt-4">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    Churn Prediction Trends
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="churnTrendChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    Risk Distribution
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="riskDistributionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- At-Risk Customers Table -->
+                    <div class="row mt-4">
+                        <div class="col-12">
+                            <div class="card">
+                                <div class="card-header d-flex justify-content-between align-items-center">
+                                    <span>High-Risk Customers</span>
+                                    <button class="btn btn-sm btn-primary">Create Campaign</button>
+                                </div>
+                                <div class="card-body">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Customer</th>
+                                                    <th>Risk Score</th>
+                                                    <th>Churn Probability</th>
+                                                    <th>Last Activity</th>
+                                                    <th>CLV</th>
+                                                    <th>Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="customer-avatar me-2">JD</div>
+                                                            <div>
+                                                                <div>John Doe</div>
+                                                                <small class="text-muted">Enterprise Plan</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress" style="height: 10px;">
+                                                            <div class="progress-bar bg-danger" style="width: 85%"></div>
+                                                        </div>
+                                                        <small>85/100</small>
+                                                    </td>
+                                                    <td><span class="badge bg-danger">78%</span></td>
+                                                    <td>3 days ago</td>
+                                                    <td>$4,250</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary">Contact</button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="customer-avatar me-2">AS</div>
+                                                            <div>
+                                                                <div>Alice Smith</div>
+                                                                <small class="text-muted">Pro Plan</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress" style="height: 10px;">
+                                                            <div class="progress-bar bg-danger" style="width: 79%"></div>
+                                                        </div>
+                                                        <small>79/100</small>
+                                                    </td>
+                                                    <td><span class="badge bg-danger">72%</span></td>
+                                                    <td>5 days ago</td>
+                                                    <td>$2,820</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary">Contact</button>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <div class="d-flex align-items-center">
+                                                            <div class="customer-avatar me-2">RJ</div>
+                                                            <div>
+                                                                <div>Robert Johnson</div>
+                                                                <small class="text-muted">Enterprise Plan</small>
+                                                            </div>
+                                                        </div>
+                                                    </td>
+                                                    <td>
+                                                        <div class="progress" style="height: 10px;">
+                                                            <div class="progress-bar bg-warning" style="width: 68%"></div>
+                                                        </div>
+                                                        <small>68/100</small>
+                                                    </td>
+                                                    <td><span class="badge bg-warning">65%</span></td>
+                                                    <td>Yesterday</td>
+                                                    <td>$5,680</td>
+                                                    <td>
+                                                        <button class="btn btn-sm btn-outline-primary">Contact</button>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Intervention Effectiveness -->
+                    <div class="row mt-4">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    Intervention Effectiveness
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="interventionChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    Churn Factors
+                                </div>
+                                <div class="card-body">
+                                    <div class="chart-container">
+                                        <canvas id="churnFactorsChart"></canvas>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    
+    <script>
+        // Sample data for charts
+        document.addEventListener('DOMContentLoaded', function() {
+            // Churn Trend Chart
+            const trendCtx = document.getElementById('churnTrendChart').getContext('2d');
+            const trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                    datasets: [
+                        {
+                            label: 'Predicted Churn',
+                            data: [12, 19, 15, 17, 14, 12],
+                            borderColor: '#f72585',
+                            backgroundColor: 'rgba(247, 37, 133, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Actual Churn',
+                            data: [10, 15, 13, 15, 12, 10],
+                            borderColor: '#3f37c9',
+                            backgroundColor: 'rgba(63, 55, 201, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        }
+                    }
+                }
+            });
+            
+            // Risk Distribution Chart
+            const riskCtx = document.getElementById('riskDistributionChart').getContext('2d');
+            const riskChart = new Chart(riskCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+                    datasets: [{
+                        data: [65, 25, 10],
+                        backgroundColor: ['#4cc9f0', '#f8961e', '#f72585']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+            
+            // Intervention Chart
+            const interventionCtx = document.getElementById('interventionChart').getContext('2d');
+            const interventionChart = new Chart(interventionCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Email', 'Discount', 'Call', 'Training', 'Feature'],
+                    datasets: [{
+                        label: 'Success Rate',
+                        data: [68, 75, 82, 65, 58],
+                        backgroundColor: '#4361ee'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 100,
+                            ticks: {
+                                callback: function(value) {
+                                    return value + '%';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+            
+            // Churn Factors Chart
+            const factorsCtx = document.getElementById('churnFactorsChart').getContext('2d');
+            const factorsChart = new Chart(factorsCtx, {
+                type: 'horizontalBar',
+                type: 'bar',
+                data: {
+                    labels: ['Low Usage', 'Poor Onboarding', 'Price', 'Competitor', 'Missing Features'],
+                    datasets: [{
+                        label: 'Impact Factor',
+                        data: [85, 72, 65, 58, 52],
+                        backgroundColor: '#4895ef'
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            beginAtZero: true,
+                            max: 100
+                        }
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
