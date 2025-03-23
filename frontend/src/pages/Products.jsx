@@ -40,7 +40,7 @@ const Products = ({ setCartCount }) => {
       <div className="product-grid">
         {products.map(product => (
           <div key={product.id} className="product-card">
-            <img src={product.image} alt={product.name} className="product-image" />
+            <img src="/pexels-larissa-barbosa-945746-1870376.jpg" alt={product.name} className="product-image" />
             <h2 className="product-name">{product.name}</h2>
             <p className="product-stock">{product.inStock ? "In Stock" : "Out of Stock"}</p>
             <div className="product-buttons">
